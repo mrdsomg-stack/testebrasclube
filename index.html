@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Football Hub - Ranking</title>
+    <title>Football Hub - Edição</title>
     <style>
-        /* CSS - Estilização Premium Dark */
         body {
             background-color: #080a0b;
             color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -17,19 +16,9 @@
             margin: 0;
         }
 
-        header { text-align: center; margin-bottom: 30px; }
-        
-        h1 { 
-            letter-spacing: 3px; 
-            font-size: 1.8rem;
-            margin-bottom: 25px;
-        }
+        h1 { letter-spacing: 3px; margin-bottom: 25px; }
 
-        .tabs { 
-            display: flex; 
-            gap: 15px; 
-            margin-bottom: 30px; 
-        }
+        .tabs { display: flex; gap: 15px; margin-bottom: 30px; }
 
         .tab-btn {
             background: #1a1d1f;
@@ -39,29 +28,18 @@
             border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
-            transition: 0.3s;
         }
 
-        .tab-btn.active {
-            border-color: #00ffa3;
-            color: #00ffa3;
-        }
+        .tab-btn.active { border-color: #00ffa3; color: #00ffa3; }
 
-        /* Container Principal */
-        .container {
-            width: 100%;
-            max-width: 550px;
-        }
+        .container { width: 100%; max-width: 550px; }
 
         .card {
             background: #111315;
             padding: 25px;
             border-radius: 15px;
             margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-
-        h3 { margin-top: 0; font-size: 1.1rem; color: #efefef; }
 
         .input-group { display: flex; gap: 10px; margin-bottom: 12px; }
 
@@ -72,10 +50,7 @@
             padding: 12px;
             border-radius: 8px;
             flex: 1;
-            outline: none;
         }
-
-        input:focus, select:focus { border-color: #00ffa3; }
 
         .save-btn {
             background: #00ffa3;
@@ -86,16 +61,6 @@
             border-radius: 10px;
             font-weight: 900;
             cursor: pointer;
-            transition: transform 0.2s, background 0.3s;
-        }
-
-        .save-btn:active { transform: scale(0.98); }
-
-        /* Estilo do Ranking */
-        .ranking-title {
-            font-weight: bold;
-            margin-bottom: 15px;
-            display: block;
         }
 
         .ranking-item {
@@ -106,96 +71,92 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid transparent;
         }
 
-        .team-info .name { 
-            font-weight: bold; 
-            display: block; 
-            font-size: 1rem;
-        }
+        .team-info .name { font-weight: bold; display: block; }
+        .team-info .years { color: #888; font-size: 0.8rem; margin-top: 4px; cursor: pointer; }
+        .team-info .years:hover { color: #00ffa3; }
 
-        .team-info .years { 
-            color: #888; 
-            font-size: 0.8rem; 
-            margin-top: 4px; 
-            display: block;
-        }
-
-        .titles-count { 
-            color: #f1c40f; 
-            font-weight: bold; 
-            white-space: nowrap;
-        }
+        .titles-count { color: #f1c40f; font-weight: bold; }
+        
+        .edit-hint { font-size: 0.7rem; color: #555; margin-top: 5px; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>FOOTBALL HUB</h1>
-        <div class="tabs">
-            <button class="tab-btn active">CLUBES</button>
-            <button class="tab-btn">JOGADORES</button>
-        </div>
-    </header>
+    <h1>FOOTBALL HUB</h1>
+    <div class="tabs">
+        <button class="tab-btn active">CLUBES</button>
+        <button class="tab-btn">JOGADORES</button>
+    </div>
 
     <div class="container">
-        <!-- Área de Registro -->
         <section class="card">
-            <h3>🏆 Registrar Temporada (Clubes)</h3>
+            <h3>🏆 Registrar/Editar Temporada</h3>
+            <input type="hidden" id="editIndex" value="-1">
             <div class="input-group">
-                <input type="number" id="ano" placeholder="Ex: 2024">
+                <input type="number" id="ano" placeholder="Ano">
                 <select id="liga">
                     <option value="La Liga">La Liga</option>
+                    <option value="Champions League">Champions League</option>
                     <option value="Bundesliga">Bundesliga</option>
                     <option value="Série A">Série A</option>
-                    <option value="Champions League">Champions League</option>
                     <option value="Premier League">Premier League</option>
                 </select>
             </div>
             <div class="input-group">
-                <input type="text" id="campeao" placeholder="Nome do Time Campeão">
+                <input type="text" id="campeao" placeholder="Time Campeão">
             </div>
-            <button class="save-btn" onclick="adicionarCampeao()">SALVAR REGISTRO</button>
+            <button class="save-btn" id="btnSalvar" onclick="salvarRegistro()">SALVAR REGISTRO</button>
+            <p class="edit-hint">* Clique nos anos no ranking para editar um registro específico.</p>
         </section>
 
-        <!-- Área do Ranking -->
-        <span class="ranking-title" id="tituloRanking">Ranking La Liga</span>
-        <div id="listaRanking">
-            <!-- Itens inseridos via JS -->
-        </div>
+        <h3 id="tituloRanking">Ranking</h3>
+        <div id="listaRanking"></div>
     </div>
 
     <script>
-        // Lógica de Funcionamento
-        function adicionarCampeao() {
-            const anoInput = document.getElementById('ano');
-            const ligaInput = document.getElementById('liga');
-            const campeaoInput = document.getElementById('campeao');
+        function salvarRegistro() {
+            const ano = document.getElementById('ano').value;
+            const liga = document.getElementById('liga').value;
+            const campeao = document.getElementById('campeao').value.trim();
+            const editIndex = parseInt(document.getElementById('editIndex').value);
 
-            const ano = anoInput.value;
-            const liga = ligaInput.value;
-            const campeao = campeaoInput.value.trim();
+            if (!ano || !campeao) return alert("Preencha os campos!");
 
-            if (!ano || !campeao) {
-                alert("Por favor, preencha o ano e o nome do time!");
-                return;
+            let dados = JSON.parse(localStorage.getItem('football_db')) || [];
+
+            if (editIndex > -1) {
+                // Modo Edição: Localiza o registro original pelo ID/Index e atualiza
+                dados[editIndex] = { ano, liga, campeao };
+                document.getElementById('editIndex').value = "-1";
+                document.getElementById('btnSalvar').innerText = "SALVAR REGISTRO";
+                document.getElementById('btnSalvar').style.background = "#00ffa3";
+            } else {
+                // Modo Novo Registro
+                dados.push({ ano, liga, campeao });
             }
 
-            // Recupera dados do LocalStorage
-            let dados = JSON.parse(localStorage.getItem('football_db')) || [];
-            
-            // Adiciona novo registro
-            dados.push({ ano, liga, campeao });
-            
-            // Salva de volta
             localStorage.setItem('football_db', JSON.stringify(dados));
-
-            // Limpa os campos
-            anoInput.value = "";
-            campeaoInput.value = "";
-
+            limparForm();
             renderizarRanking();
+        }
+
+        function prepararEdicao(ano, liga, time) {
+            let dados = JSON.parse(localStorage.getItem('football_db')) || [];
+            // Encontra o índice exato do registro para editar
+            const index = dados.findIndex(d => d.ano == ano && d.liga == liga && d.campeao == time);
+            
+            if (index > -1) {
+                document.getElementById('ano').value = dados[index].ano;
+                document.getElementById('liga').value = dados[index].liga;
+                document.getElementById('campeao').value = dados[index].campeao;
+                document.getElementById('editIndex').value = index;
+                
+                document.getElementById('btnSalvar').innerText = "ATUALIZAR DADOS";
+                document.getElementById('btnSalvar').style.background = "#f1c40f";
+                window.scrollTo(0, 0);
+            }
         }
 
         function renderizarRanking() {
@@ -206,42 +167,37 @@
             document.getElementById('tituloRanking').innerText = `Ranking ${ligaAtual}`;
             listaRanking.innerHTML = "";
 
-            // Agrupar títulos por time para a liga selecionada
             const rankingMap = {};
-
             dados.filter(d => d.liga === ligaAtual).forEach(item => {
-                if (!rankingMap[item.campeao]) {
-                    rankingMap[item.campeao] = { count: 0, anos: [] };
-                }
+                if (!rankingMap[item.campeao]) rankingMap[item.campeao] = { count: 0, anos: [] };
                 rankingMap[item.campeao].count++;
                 rankingMap[item.campeao].anos.push(item.ano);
             });
 
-            // Converter para array e ordenar pelo número de títulos (maior para menor)
-            const rankingOrdenado = Object.entries(rankingMap).sort((a, b) => b[1].count - a[1].count);
+            Object.entries(rankingMap)
+                .sort((a, b) => b[1].count - a[1].count)
+                .forEach(([time, info]) => {
+                    const anosHtml = info.anos.sort((a, b) => b - a).map(a => 
+                        `<span onclick="prepararEdicao('${a}', '${ligaAtual}', '${time}')" title="Clique para editar">${a}</span>`
+                    ).join(', ');
 
-            // Criar o HTML dos itens
-            rankingOrdenado.forEach(([time, info]) => {
-                // Ordena os anos de forma crescente
-                const anosOrdenados = info.anos.sort((a, b) => a - b).join(', ');
-
-                const div = document.createElement('div');
-                div.className = 'ranking-item';
-                div.innerHTML = `
-                    <div class="team-info">
-                        <span class="name">${time}</span>
-                        <span class="years">${anosOrdenados}</span>
-                    </div>
-                    <div class="titles-count">${info.count} ${info.count > 1 ? 'Títulos' : 'Título'}</div>
-                `;
-                listaRanking.appendChild(div);
-            });
+                    listaRanking.innerHTML += `
+                        <div class="ranking-item">
+                            <div class="team-info">
+                                <span class="name">${time}</span>
+                                <span class="years">✎ Editar ano: ${anosHtml}</span>
+                            </div>
+                            <div class="titles-count">${info.count} Títulos</div>
+                        </div>`;
+                });
         }
 
-        // Evento para atualizar o ranking automaticamente quando mudar a liga no seletor
-        document.getElementById('liga').addEventListener('change', renderizarRanking);
+        function limparForm() {
+            document.getElementById('ano').value = "";
+            document.getElementById('campeao').value = "";
+        }
 
-        // Inicia a tabela ao carregar a página
+        document.getElementById('liga').addEventListener('change', renderizarRanking);
         window.onload = renderizarRanking;
     </script>
 </body>
