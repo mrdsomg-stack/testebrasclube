@@ -61,6 +61,20 @@
             border-radius: 10px;
             font-weight: 900;
             cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        /* NOVO: Estilo do botão cancelar/excluir no formulário */
+        .cancel-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            display: none; /* Escondido por padrão */
         }
 
         .ranking-item {
@@ -74,8 +88,20 @@
         }
 
         .team-info .name { font-weight: bold; display: block; }
-        .team-info .years { color: #888; font-size: 0.8rem; margin-top: 4px; cursor: pointer; }
-        .team-info .years:hover { color: #00ffa3; }
+        .team-info .years { color: #888; font-size: 0.8rem; margin-top: 4px; }
+        
+        /* NOVO: Estilo para os anos clicáveis e botão de lixo */
+        .year-tag { 
+            cursor: pointer; 
+            transition: 0.2s; 
+            display: inline-flex;
+            align-items: center;
+            background: #2a2e31;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+        .year-tag:hover { color: #00ffa3; background: #333; }
 
         .titles-count { color: #f1c40f; font-weight: bold; }
         
@@ -108,7 +134,10 @@
                 <input type="text" id="campeao" placeholder="Time Campeão">
             </div>
             <button class="save-btn" id="btnSalvar" onclick="salvarRegistro()">SALVAR REGISTRO</button>
-            <p class="edit-hint">* Clique nos anos no ranking para editar um registro específico.</p>
+            <!-- NOVO: Botão para excluir/cancelar a edição atual -->
+            <button class="cancel-btn" id="btnExcluir" onclick="excluirRegistro()">EXCLUIR ESTE REGISTRO</button>
+            
+            <p class="edit-hint">* Clique nos anos no ranking para editar ou excluir.</p>
         </section>
 
         <h3 id="tituloRanking">Ranking</h3>
@@ -127,13 +156,8 @@
             let dados = JSON.parse(localStorage.getItem('football_db')) || [];
 
             if (editIndex > -1) {
-                // Modo Edição: Localiza o registro original pelo ID/Index e atualiza
                 dados[editIndex] = { ano, liga, campeao };
-                document.getElementById('editIndex').value = "-1";
-                document.getElementById('btnSalvar').innerText = "SALVAR REGISTRO";
-                document.getElementById('btnSalvar').style.background = "#00ffa3";
             } else {
-                // Modo Novo Registro
                 dados.push({ ano, liga, campeao });
             }
 
@@ -142,9 +166,20 @@
             renderizarRanking();
         }
 
+        // NOVO: Função para excluir o registro que está sendo editado
+        function excluirRegistro() {
+            const editIndex = parseInt(document.getElementById('editIndex').value);
+            if (editIndex > -1 && confirm("Tem certeza que deseja apagar este título?")) {
+                let dados = JSON.parse(localStorage.getItem('football_db')) || [];
+                dados.splice(editIndex, 1); // Remove o item do array
+                localStorage.setItem('football_db', JSON.stringify(dados));
+                limparForm();
+                renderizarRanking();
+            }
+        }
+
         function prepararEdicao(ano, liga, time) {
             let dados = JSON.parse(localStorage.getItem('football_db')) || [];
-            // Encontra o índice exato do registro para editar
             const index = dados.findIndex(d => d.ano == ano && d.liga == liga && d.campeao == time);
             
             if (index > -1) {
@@ -155,6 +190,10 @@
                 
                 document.getElementById('btnSalvar').innerText = "ATUALIZAR DADOS";
                 document.getElementById('btnSalvar').style.background = "#f1c40f";
+                
+                // NOVO: Mostra o botão de excluir
+                document.getElementById('btnExcluir').style.display = "block";
+                
                 window.scrollTo(0, 0);
             }
         }
@@ -177,15 +216,16 @@
             Object.entries(rankingMap)
                 .sort((a, b) => b[1].count - a[1].count)
                 .forEach(([time, info]) => {
+                    // Ajustado para criar "tags" clicáveis melhores
                     const anosHtml = info.anos.sort((a, b) => b - a).map(a => 
-                        `<span onclick="prepararEdicao('${a}', '${ligaAtual}', '${time}')" title="Clique para editar">${a}</span>`
-                    ).join(', ');
+                        `<span class="year-tag" onclick="prepararEdicao('${a}', '${ligaAtual}', '${time}')" title="Clique para editar ou excluir">${a}</span>`
+                    ).join('');
 
                     listaRanking.innerHTML += `
                         <div class="ranking-item">
                             <div class="team-info">
                                 <span class="name">${time}</span>
-                                <span class="years">✎ Editar ano: ${anosHtml}</span>
+                                <div class="years">✎ ${anosHtml}</div>
                             </div>
                             <div class="titles-count">${info.count} Títulos</div>
                         </div>`;
@@ -195,6 +235,10 @@
         function limparForm() {
             document.getElementById('ano').value = "";
             document.getElementById('campeao').value = "";
+            document.getElementById('editIndex').value = "-1";
+            document.getElementById('btnSalvar').innerText = "SALVAR REGISTRO";
+            document.getElementById('btnSalvar').style.background = "#00ffa3";
+            document.getElementById('btnExcluir').style.display = "none"; // Esconde excluir
         }
 
         document.getElementById('liga').addEventListener('change', renderizarRanking);
